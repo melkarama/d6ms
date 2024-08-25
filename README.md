@@ -8,7 +8,7 @@ In the current landscape, there are only a few free and open-source DMS solution
 
 ### Centralized and Reliable
 
-A DMS is inherently centralized and must efficiently manage binary data. Databases—whether SQL or NoSQL—are built for exactly this purpose. They are mature technologies known for their reliability and efficiency, particularly in handling transactions with ACID (Atomicity, Consistency, Isolation, Durability) properties. Leveraging a database as the backend for a DMS ensures that document storage is as reliable as it is scalable.
+A DMS is inherently centralized and must efficiently manage binary data. Databases—whether SQL or NoSQL—are built for exactly centralized storage, and handles very well the binary content. They are mature technologies known for their reliability and efficiency, particularly in handling transactions with ACID (Atomicity, Consistency, Isolation, Durability) properties. Leveraging a database as the backend for a DMS ensures that document storage is as reliable as it is scalable.
 
 ### Simplified API with Familiar Tools
 
