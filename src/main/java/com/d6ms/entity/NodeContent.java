@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "DMS_NODE_CONTENT")
-public class NodeContent extends Node {
+public class NodeContent extends BaseEntity<Long> {
 
 	@Column(name = "CONTENT")
 	private byte[] content;
