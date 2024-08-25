@@ -54,4 +54,12 @@ public class BaseEntity {
 		}
 	}
 
+	public BaseEntity(String id) {
+		super();
+		this.id = id;
+	}
+
+	public BaseEntity() {
+	}
+
 }

@@ -95,7 +95,7 @@ public class DmsService {
 
 		List<NodeTreeElement> tree = dmsRepo.getHierarchy(List.of(id));
 
-		dmsRepo.saveAction(ActionType.CREATION, tree, LocalDateTime.now());
+		dmsRepo.saveAction(id, ActionType.CREATION, tree, LocalDateTime.now());
 
 		return id;
 	}
@@ -106,8 +106,7 @@ public class DmsService {
 		LOGGER.info("#folder# Saving node [store={}, parent={}, bk={}, name={}]", storeId, parentNodeId, businesskey,
 				name);
 
-		Store store = new Store();
-		store.setId(storeId);
+		Store store = new Store(storeId);
 
 		Node n = new Node();
 		n.setBusinessKey(businesskey);
@@ -138,7 +137,7 @@ public class DmsService {
 		List<NodeTreeElement> tree = dmsRepo.archiveNode(id);
 
 		if (!tree.isEmpty()) {
-			dmsRepo.saveAction(ActionType.ARCHIVING, tree, LocalDateTime.now());
+			dmsRepo.saveAction(id, ActionType.ARCHIVING, tree, LocalDateTime.now());
 		}
 	}
 

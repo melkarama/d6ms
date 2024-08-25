@@ -25,4 +25,7 @@ public class Action extends BaseEntity {
 	@Column(name = "TARGET")
 	private String targetHierarchy;
 
+	@Column(name = "NODE_ID")
+	private String nodeId;
+
 }

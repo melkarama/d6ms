@@ -160,10 +160,11 @@ public class DmsRepo {
 		return tree;
 	}
 
-	public void saveAction(ActionType type, List<NodeTreeElement> tree, LocalDateTime dt) {
+	public void saveAction(String id, ActionType type, List<NodeTreeElement> tree, LocalDateTime dt) {
 		Action e = new Action();
 		e.setArchiveDate(dt);
 		e.setType(type);
+		e.setNodeId(id);
 		e.setTargetHierarchy(Utils.toJson(tree, true));
 		save(e);
 	}
