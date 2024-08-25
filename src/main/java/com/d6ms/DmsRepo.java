@@ -253,47 +253,27 @@ public class DmsRepo {
 
 	public List<NodeTreeElement> getHierarchy(Collection<String> rootIds) {
 		String sql = """
-				WITH RECURSIVE node_tree AS (
-				    SELECT
-				        id,
-						name,
-				        type,
-				        parent_id,
-				        store_id,
-				        1 AS level
-				    FROM
-				        person """;
+				WITH RECURSIVE node_tree (id, name, type, parent_id, store_id, level) AS (
+				   SELECT id, name, type, parent_id, store_id, 1 AS level
+				   FROM dms_node """;
 
 		if (rootIds == null || rootIds.isEmpty()) {
 			sql += "\n WHERE parent_id is null ";
 		} else {
-			sql += "\n WHERE id=in (:rootIds) ";
+			sql += "\n WHERE id in (?) ";
 		}
 
 		sql += """
-					    UNION ALL
-					    SELECT
-					        id,
-							name,
-					        type,
-					        parent_id,
-					        store_id,
-					        pt.level + 1 AS level
-					    FROM
-					        node p
-					    INNER JOIN
-					        person_tree pt
-					    ON
-					        p.parent_id = pt.id
-					)
-					SELECT * FROM node_tree
-				""";
-
-		Map<String, Object> params = Map.of("rootIds", rootIds);
+				    UNION ALL
+				    SELECT p.id, p.name, p.type, p.parent_id, p.store_id, pt.level + 1 AS level
+				    FROM dms_node p
+				    INNER JOIN node_tree pt ON p.parent_id = pt.id
+				)
+				SELECT * FROM node_tree
+						""";
 
 		Query q = em.createNativeQuery(sql, Object[].class);
-
-		applyParams(q, params);
+		q.setParameter(1, rootIds);
 
 		@SuppressWarnings("unchecked")
 		List<Object[]> lines = q.getResultList();

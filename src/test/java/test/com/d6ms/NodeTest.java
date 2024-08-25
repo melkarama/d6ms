@@ -3,6 +3,7 @@ package test.com.d6ms;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.File;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ import com.d6ms.dto.NodeSearchCriteria;
 public class NodeTest extends BaseTest {
 
 	@Test
-	public void test() throws Exception {
+	public void testAddingFolderByName() throws Exception {
 		String bk = "bk01";
 
 		int nb = 3;
@@ -61,6 +62,18 @@ public class NodeTest extends BaseTest {
 		List<NodeInfo> nodeInfos = dmsService.loadNodeInfos(criteria);
 
 		assertEquals(nb, nodeInfos.size());
+	}
+
+	@Test
+	public void testAddingFolderAndDocumentsRecursivelyByFileSystem() throws Exception {
+		String bk = "bk02";
+
+		File d = new File("./src");
+
+		String id = trxService.execute(() -> dmsService.saveFolderNode(storeId, null, bk, d, (f) -> true));
+
+		assertNotNull(id);
+
 	}
 
 }

@@ -34,6 +34,17 @@ public class BaseTest {
 
 	@BeforeEach
 	public void init() throws Exception {
+
+		trxService.execute(() -> {
+			String[] tables = { "dms_metadata", "dms_node", "dms_action" };
+
+			for (String table : tables) {
+				em.createNativeQuery("truncate table " + table).executeUpdate();
+			}
+
+			return null;
+		});
+
 		if (storeId != null) {
 			return;
 		}
