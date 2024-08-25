@@ -1,6 +1,5 @@
 package com.d6ms.entity;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.d6ms.type.State;
@@ -8,10 +7,9 @@ import com.d6ms.type.State;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -21,15 +19,12 @@ import lombok.EqualsAndHashCode;
 @Data
 @MappedSuperclass
 @EqualsAndHashCode(of = "id")
-public class BaseEntity<ID extends Serializable> {
+public class BaseEntity {
 
 	@Id
 	@Column(name = "ID")
-	private ID id;
-
-	@ManyToOne
-	@JoinColumns(@JoinColumn(name = "STORE_ID", nullable = false))
-	private Store store;
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private String id;
 
 	@Column(name = "CREATION_DATE")
 	private LocalDateTime creationDate;
@@ -41,7 +36,7 @@ public class BaseEntity<ID extends Serializable> {
 	private LocalDateTime archiveDate;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "STATE")
+	@Column(name = "STATE_")
 	private State state;
 
 	@PrePersist
