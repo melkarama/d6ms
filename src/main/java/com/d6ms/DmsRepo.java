@@ -65,7 +65,7 @@ public class DmsRepo {
 		return q.getResultList();
 	}
 
-	public void save(BaseEntity<?> e) {
+	public void save(BaseEntity e) {
 		if (e.getId() == null) {
 			em.persist(e);
 		} else {
@@ -73,13 +73,13 @@ public class DmsRepo {
 		}
 	}
 
-	public void save(Collection<? extends BaseEntity<?>> t) {
-		for (BaseEntity<?> e : t) {
+	public void save(Collection<? extends BaseEntity> t) {
+		for (BaseEntity e : t) {
 			save(e);
 		}
 	}
 
-	public <E extends BaseEntity<?>> List<E> load(Class<E> clazz, Collection<String> ids) {
+	public <E extends BaseEntity> List<E> load(Class<E> clazz, Collection<String> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return new ArrayList<>();
 		}
@@ -173,14 +173,14 @@ public class DmsRepo {
 		Map<String, String> idxMap = criteria.getIndexes() == null ? new HashMap<>()
 				: new TreeMap<>(criteria.getIndexes());
 
-		String sql = "select e from Node e join e.store s left join e.parent p";
+		String sql = "select e from Node e join e.store s left join e.parent p ";
 
 		for (int idx = 0; idx < idxMap.size(); idx++) {
 			String idx_alias = "metadata_" + idx;
 			sql = appendSql(sql, "join Metadata " + idx_alias + " on " + idx_alias + ".node.id = e.id", null);
 		}
 
-		sql = appendSql(sql, "where 1=1", null);
+		sql += "\n where 1=1";
 
 		Map<String, Object> params = new HashMap<>();
 
@@ -357,7 +357,7 @@ public class DmsRepo {
 	}
 
 	private String appendSql(String sql, String chunk, Map<String, Object> params, Object... chunkParams) {
-		String sql2 = sql + "\n" + chunk;
+		String sql2 = sql + "\n and " + chunk;
 		if (chunkParams != null && chunkParams.length > 0) {
 			for (int i = 0; i < chunkParams.length; i += 2) {
 				params.put((String) chunkParams[i], chunkParams[i + 1]);

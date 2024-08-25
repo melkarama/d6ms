@@ -14,11 +14,14 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "DMS_METADATA")
-public class Metadata extends Node {
+public class Metadata extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumns(@JoinColumn(name = "NODE_ID"))
 	private Node node;
+
+	@Column(name = "NAME")
+	private String name;
 
 	@Column(name = "VALUE", length = 4000)
 	private String value;

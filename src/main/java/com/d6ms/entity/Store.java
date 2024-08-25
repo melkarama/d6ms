@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @Entity
 @Table(name = "DMS_STORE")
-public class Store extends BaseEntity<String> {
+public class Store extends BaseEntity {
 
 	@Column(name = "NAME")
 	private String name;

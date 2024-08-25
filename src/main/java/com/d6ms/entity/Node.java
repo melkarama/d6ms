@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "DMS_NODE")
-public class Node extends BaseEntity<String> {
+public class Node extends BaseEntity {
 
 	@Column(name = "NAME")
 	private String name;
@@ -38,6 +38,10 @@ public class Node extends BaseEntity<String> {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumns(@JoinColumn(name = "PARENT_ID"))
 	private Node parent;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumns(@JoinColumn(name = "STORE_ID", nullable = false))
+	private Store store;
 
 	@Column(name = "TYPE")
 	private NodeType type;
