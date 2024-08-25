@@ -15,10 +15,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "DMS_ACTION")
-public class Action extends BaseEntity<Long> {
+public class Action extends BaseEntity {
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "type")
+	@Column(name = "TYPE_")
 	private ActionType type;
 
 	@Lob

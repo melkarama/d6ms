@@ -102,12 +102,11 @@ public class DmsService {
 
 		Node n = new Node();
 		n.setBusinessKey(businesskey);
-		n.setId(UUID.randomUUID().toString());
 		n.setName(name);
 		n.setStore(store);
 		n.setState(State.ACTIVE);
 
-		if (!StringUtils.isBlank(parentNodeId)) {
+		if (parentNodeId != null) {
 			Node pf = new Node();
 			pf.setId(parentNodeId);
 			pf.setStore(store);
