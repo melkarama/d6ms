@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 import com.d6ms.type.NodeType;
 import com.d6ms.type.State;
+import com.d6ms.utils.Utils;
 
 import lombok.Data;
 
@@ -23,6 +24,8 @@ public class NodeSearchCriteria {
 
 	private Collection<String> masterTypes;
 
+	private String name;
+
 	private String parentId;
 
 	private Map<String, String> indexes = new TreeMap<>();
@@ -36,5 +39,10 @@ public class NodeSearchCriteria {
 	private int pageSize;
 
 	private int pageNumber;
+
+	@Override
+	public String toString() {
+		return Utils.toJson(this, true);
+	}
 
 }

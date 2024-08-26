@@ -105,6 +105,48 @@ public class NodeTest extends BaseTest {
 				nodeInfos = dmsService.loadNodeInfos(criteria);
 				assertEquals(2, nodeInfos.size());
 			}
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.FOLDER);
+				criteria.setName("d1-1");
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(1, nodeInfos.size());
+			}
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.DOCUMENT);
+				criteria.setName("d1-1");
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(0, nodeInfos.size());
+			}
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.FOLDER);
+				criteria.setName("d1-1-f1.txt");
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(0, nodeInfos.size());
+			}
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.DOCUMENT);
+				criteria.setName("d1-1-f1.txt");
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(1, nodeInfos.size());
+
+				String documentId = nodeInfos.get(0).getId();
+
+				byte[] content = trxService.execute(() -> dmsService.loadContent(documentId));
+
+				assertEquals("d1-1-f1.txt content", new String(content));
+			}
 		}
 
 		{

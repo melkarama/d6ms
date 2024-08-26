@@ -30,6 +30,7 @@ import com.d6ms.dto.NodeSearchCriteria;
 import com.d6ms.dto.NodeTreeElement;
 import com.d6ms.entity.Metadata;
 import com.d6ms.entity.Node;
+import com.d6ms.entity.NodeContent;
 import com.d6ms.entity.Store;
 import com.d6ms.type.ActionType;
 import com.d6ms.type.NodeType;
@@ -170,6 +171,11 @@ public class DmsService {
 		Store store = new Store();
 		store.setId(storeId);
 
+		NodeContent nc = new NodeContent();
+		nc.setContent(content);
+		nc.setStore(store);
+		dmsRepo.save(nc);
+
 		Node n = new Node();
 		n.setBusinessKey(businesskey);
 		n.setId(UUID.randomUUID().toString());
@@ -181,6 +187,7 @@ public class DmsService {
 		n.setType(NodeType.DOCUMENT);
 		n.setContentType(contentType);
 		n.setState(State.ACTIVE);
+		n.setNodeContent(nc);
 
 		if (!StringUtils.isBlank(folderId)) {
 			Node pf = new Node();
