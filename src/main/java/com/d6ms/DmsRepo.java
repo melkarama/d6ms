@@ -212,6 +212,10 @@ public class DmsRepo {
 			sql = appendSql(sql, "e.state in (:states)", params, "states", criteria.getStates());
 		}
 
+		if (criteria.getType() != null) {
+			sql = appendSql(sql, "e.type = :type", params, "type", criteria.getType());
+		}
+
 		int idx = 0;
 		for (String idxName : idxMap.keySet()) {
 			String idxValue = idxMap.get(idxName);

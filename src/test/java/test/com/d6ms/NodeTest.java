@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import com.d6ms.dto.NodeInfo;
 import com.d6ms.dto.NodeSearchCriteria;
+import com.d6ms.type.NodeType;
+import com.d6ms.utils.DmsUtils;
 
 public class NodeTest extends BaseTest {
 
@@ -66,13 +68,93 @@ public class NodeTest extends BaseTest {
 
 	@Test
 	public void testAddingFolderAndDocumentsRecursivelyByFileSystem() throws Exception {
-		String bk = "bk02";
 
-		File d = new File("./src");
+		List<NodeInfo> nodeInfos;
 
-		String id = trxService.execute(() -> dmsService.saveFolderNode(storeId, null, bk, d, (f) -> true));
+		{
+			String bk = "bk11";
+			String folderPath = "./test-data/d1";
 
-		assertNotNull(id);
+			File d = new File(folderPath);
+
+			String id = trxService.execute(() -> dmsService.saveFolderNode(storeId, null, bk, d, (f) -> true));
+
+			assertNotNull(id);
+
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(5, nodeInfos.size());
+			}
+
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.FOLDER);
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(3, nodeInfos.size());
+			}
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.DOCUMENT);
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(2, nodeInfos.size());
+			}
+		}
+
+		{
+			NodeSearchCriteria criteria = new NodeSearchCriteria();
+			criteria.setStoreId(storeId);
+			nodeInfos = dmsService.loadNodeInfos(criteria);
+			assertEquals(1, DmsUtils.getRootNodes(nodeInfos).size());
+		}
+
+		{
+			String bk = "bk12";
+			String folderPath = "./test-data/d2";
+
+			File d = new File(folderPath);
+
+			String id = trxService.execute(() -> dmsService.saveFolderNode(storeId, null, bk, d, (f) -> true));
+
+			assertNotNull(id);
+
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(6, nodeInfos.size());
+			}
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.FOLDER);
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(3, nodeInfos.size());
+			}
+			{
+				NodeSearchCriteria criteria = new NodeSearchCriteria();
+				criteria.setBusinessKeys(List.of(bk));
+				criteria.setStoreId(storeId);
+				criteria.setType(NodeType.DOCUMENT);
+				nodeInfos = dmsService.loadNodeInfos(criteria);
+				assertEquals(3, nodeInfos.size());
+			}
+		}
+
+		{
+			NodeSearchCriteria criteria = new NodeSearchCriteria();
+			criteria.setStoreId(storeId);
+			nodeInfos = dmsService.loadNodeInfos(criteria);
+			assertEquals(2, DmsUtils.getRootNodes(nodeInfos).size());
+		}
 
 	}
 
