@@ -22,6 +22,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.d6ms.dto.NodeInfo;
 import com.d6ms.dto.NodeSearchCriteria;
@@ -34,6 +36,8 @@ import com.d6ms.type.NodeType;
 import com.d6ms.type.State;
 
 public class DmsService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DmsService.class);
 
 	public static final Charset ENCODING = StandardCharsets.UTF_8;
 
@@ -49,6 +53,8 @@ public class DmsService {
 	}
 
 	public byte[] loadContent(String id) {
+		LOGGER.info("Loading content {} ..", id);
+
 		Node d = dmsRepo.getNode(id);
 		byte[] t = d.getNodeContent().getContent();
 		return Arrays.copyOf(t, t.length);
@@ -77,7 +83,7 @@ public class DmsService {
 					Boolean inc = filter.apply(f);
 					if (inc != null && inc) {
 						if (f.isDirectory()) {
-							saveFolderNode(storeId, id, businesskey, f.getName());
+							saveFolderNode(storeId, id, businesskey, f, filter);
 						} else {
 							saveDocumentNode(storeId, id, File.class.getCanonicalName(), f.getCanonicalPath(),
 									businesskey, f.getName(), f);
@@ -89,7 +95,7 @@ public class DmsService {
 
 		List<NodeTreeElement> tree = dmsRepo.getHierarchy(List.of(id));
 
-		dmsRepo.saveAction(ActionType.CREATION, tree, LocalDateTime.now());
+		dmsRepo.saveAction(id, ActionType.CREATION, tree, LocalDateTime.now());
 
 		return id;
 	}
@@ -97,13 +103,16 @@ public class DmsService {
 	public String saveFolderNode(String storeId, String parentNodeId, String businesskey, String name)
 			throws IOException {
 
-		Store store = new Store();
-		store.setId(storeId);
+		LOGGER.info("#folder# Saving node [store={}, parent={}, bk={}, name={}]", storeId, parentNodeId, businesskey,
+				name);
+
+		Store store = new Store(storeId);
 
 		Node n = new Node();
 		n.setBusinessKey(businesskey);
 		n.setName(name);
 		n.setStore(store);
+		n.setType(NodeType.FOLDER);
 		n.setState(State.ACTIVE);
 
 		if (parentNodeId != null) {
@@ -128,12 +137,15 @@ public class DmsService {
 		List<NodeTreeElement> tree = dmsRepo.archiveNode(id);
 
 		if (!tree.isEmpty()) {
-			dmsRepo.saveAction(ActionType.ARCHIVING, tree, LocalDateTime.now());
+			dmsRepo.saveAction(id, ActionType.ARCHIVING, tree, LocalDateTime.now());
 		}
 	}
 
 	public String saveDocumentNode(String storeId, String folderId, String masterType, String masterId,
 			String businesskey, String name, Object o) throws IOException, Exception {
+
+		LOGGER.info("#file# Saving node [store={}, parent={}, masterType={}, masterId={}, bk={}, name={}]", storeId,
+				folderId, masterType, masterId, businesskey, name);
 
 		byte[] content = null;
 

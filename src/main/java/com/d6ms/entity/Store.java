@@ -15,4 +15,11 @@ public class Store extends BaseEntity {
 	@Column(name = "NAME")
 	private String name;
 
+	public Store(String id) {
+		super(id);
+	}
+
+	public Store() {
+	}
+
 }

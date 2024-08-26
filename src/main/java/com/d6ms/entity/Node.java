@@ -7,6 +7,8 @@ import com.d6ms.type.NodeType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinColumns;
@@ -43,6 +45,7 @@ public class Node extends BaseEntity {
 	@JoinColumns(@JoinColumn(name = "STORE_ID", nullable = false))
 	private Store store;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "TYPE")
 	private NodeType type;
 

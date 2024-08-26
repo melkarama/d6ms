@@ -29,8 +29,8 @@ public class BaseTestConfig {
 	@Bean
 	public DataSource dataSource() {
 		DriverManagerDataSource ds = new DriverManagerDataSource();
-		ds.setDriverClassName("org.h2.Driver");
-		ds.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+		ds.setDriverClassName("org.hsqldb.jdbc.JDBCDriver");
+		ds.setUrl("jdbc:hsqldb:mem:testdb;DB_CLOSE_DELAY=-1");
 		ds.setUsername("sa");
 		ds.setPassword("");
 		return ds;
@@ -44,7 +44,7 @@ public class BaseTestConfig {
 		emfBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
 		Properties props = new Properties();
-		props.setProperty("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+		props.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
 		props.setProperty("hibernate.hbm2ddl.auto", "create-drop");
 		props.setProperty("hibernate.globally_quoted_identifiers", "true");
 		emfBean.setJpaProperties(props);
