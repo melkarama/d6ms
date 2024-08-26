@@ -216,6 +216,7 @@ public class DmsRepo {
 			sql = appendSql(sql, "e.type = :type", params, "type", criteria.getType());
 		}
 
+
 		if (!StringUtils.isBlank(criteria.getName())) {
 			sql = appendSql(sql, "e.name = :name", params, "name", criteria.getName());
 		}

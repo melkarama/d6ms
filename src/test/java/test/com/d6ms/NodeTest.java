@@ -105,6 +105,7 @@ public class NodeTest extends BaseTest {
 				nodeInfos = dmsService.loadNodeInfos(criteria);
 				assertEquals(2, nodeInfos.size());
 			}
+
 			{
 				NodeSearchCriteria criteria = new NodeSearchCriteria();
 				criteria.setBusinessKeys(List.of(bk));
@@ -147,6 +148,7 @@ public class NodeTest extends BaseTest {
 
 				assertEquals("d1-1-f1.txt content", new String(content));
 			}
+
 		}
 
 		{
