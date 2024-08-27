@@ -42,6 +42,8 @@ public class DmsRepo {
 	}
 
 	public Node getNode(String id) {
+		ObjectUtils.requireNonEmpty(id, "Node id");
+
 		String sql = "select e from Node e where e.id = :id";
 		Map<String, Object> params = Map.of("id", id);
 
@@ -66,6 +68,8 @@ public class DmsRepo {
 	}
 
 	public void save(BaseEntity e) {
+		ObjectUtils.requireNonEmpty(e, "Entity");
+
 		if (e.getId() == null) {
 			em.persist(e);
 		} else {
@@ -74,7 +78,11 @@ public class DmsRepo {
 	}
 
 	public void save(Collection<? extends BaseEntity> t) {
+		ObjectUtils.requireNonEmpty(t, "Entity List");
+
 		for (BaseEntity e : t) {
+			ObjectUtils.requireNonEmpty(e, "Entity");
+
 			save(e);
 		}
 	}
@@ -88,6 +96,8 @@ public class DmsRepo {
 	}
 
 	public List<Metadata> getNodeMetadata(String id) {
+		ObjectUtils.requireNonEmpty(id, "Node id");
+
 		Map<String, List<Metadata>> idxMap = getNodeMetadata(List.of(id));
 
 		List<Metadata> metadataList = idxMap.get(id);
@@ -123,6 +133,8 @@ public class DmsRepo {
 	}
 
 	public List<NodeTreeElement> archiveNode(String id) {
+
+		ObjectUtils.requireNonEmpty(id, "Node id");
 
 		if (StringUtils.isBlank(id)) {
 			return new ArrayList<>();
