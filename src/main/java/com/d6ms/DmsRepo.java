@@ -96,8 +96,9 @@ public class DmsRepo {
 	}
 
 	public Map<String, List<Metadata>> getNodeMetadata(Collection<String> ids) {
-		String sql = "select n.id, m from Metadata m join fetch m.node n where n.id in (:ids) and n.state = :state";
-		Map<String, Object> params = Map.of("ids", ids, "state", State.ACTIVE);
+		String sql = "select n.id, m from Metadata m join fetch m.node n where n.id in (:ids) ";
+		sql += " and n.state = :activeState and m.state = :activeState";
+		Map<String, Object> params = Map.of("ids", ids, "activeState", State.ACTIVE);
 
 		TypedQuery<Object[]> q = em.createQuery(sql, Object[].class);
 		applyParams(q, params);
