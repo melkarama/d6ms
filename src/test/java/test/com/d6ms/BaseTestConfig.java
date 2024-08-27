@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.d6ms.DmsRepo;
 import com.d6ms.DmsService;
-import com.d6ms.TrxService;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;

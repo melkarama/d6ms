@@ -3,6 +3,7 @@ package com.d6ms.dto;
 import java.util.Map;
 
 import com.d6ms.type.NodeType;
+import com.d6ms.utils.Utils;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,5 +25,10 @@ public class NodeTreeElement {
 	private int level;
 
 	private Map<String, NodeTreeElement> children;
+
+	@Override
+	public String toString() {
+		return Utils.toJson(this, true);
+	}
 
 }

@@ -11,11 +11,10 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
@@ -30,6 +29,7 @@ import com.d6ms.dto.NodeSearchCriteria;
 import com.d6ms.dto.NodeTreeElement;
 import com.d6ms.entity.Metadata;
 import com.d6ms.entity.Node;
+import com.d6ms.entity.NodeContent;
 import com.d6ms.entity.Store;
 import com.d6ms.type.ActionType;
 import com.d6ms.type.NodeType;
@@ -170,9 +170,13 @@ public class DmsService {
 		Store store = new Store();
 		store.setId(storeId);
 
+		NodeContent nc = new NodeContent();
+		nc.setContent(content);
+		nc.setStore(store);
+		dmsRepo.save(nc);
+
 		Node n = new Node();
 		n.setBusinessKey(businesskey);
-		n.setId(UUID.randomUUID().toString());
 		n.setName(name);
 		n.setMasterId(masterId);
 		n.setMasterType(masterType);
@@ -181,6 +185,7 @@ public class DmsService {
 		n.setType(NodeType.DOCUMENT);
 		n.setContentType(contentType);
 		n.setState(State.ACTIVE);
+		n.setNodeContent(nc);
 
 		if (!StringUtils.isBlank(folderId)) {
 			Node pf = new Node();
@@ -201,7 +206,7 @@ public class DmsService {
 		return id;
 	}
 
-	public void updateNodeIndexes(String id, Map<String, String> indexMap, boolean sync) {
+	public int updateMetadata(String id, Map<String, String> indexMap, boolean sync) {
 		List<Metadata> metadataList = dmsRepo.getNodeMetadata(id);
 
 		Node d = new Node();
@@ -214,6 +219,9 @@ public class DmsService {
 		}
 
 		dmsRepo.save(updatedMetadataList);
+
+		return updatedMetadataList.size();
+
 	}
 
 	public void updateNodeMasterInfos(String documentId, String masterId, String masterType) {
@@ -233,10 +241,10 @@ public class DmsService {
 		}
 	}
 
-	private List<Metadata> createUpdateMetadataList(List<Metadata> metadataList, Map<String, String> indexMap,
+	private List<Metadata> createUpdateMetadataList(List<Metadata> metadataList, Map<String, String> metadataMap,
 			boolean sync) {
 
-		Map<String, Metadata> map = metadataList.stream().collect(Collectors.toMap(Metadata::getName, e -> e));
+		Map<String, Metadata> map = new HashMap<>();
 
 		List<Metadata> updatedIndexes = new ArrayList<>();
 
@@ -245,11 +253,11 @@ public class DmsService {
 
 				String name = m.getName().trim();
 
-				if (!indexMap.containsKey(name)) {
+				if (!metadataMap.containsKey(name)) {
 					m.setState(State.ARCHIVED);
 					updatedIndexes.add(m);
 				} else if (m.getState() != State.ARCHIVED) {
-					String newValue = indexMap.get(name);
+					String newValue = metadataMap.get(name);
 
 					if (newValue == null) {
 						newValue = "";
@@ -262,16 +270,37 @@ public class DmsService {
 					}
 				}
 			}
+		} else {
+			for (String name : metadataMap.keySet()) {
+
+				name = name.trim();
+
+				Metadata m = map.get(name);
+
+				if (m != null) {
+					String newValue = metadataMap.get(name);
+					if (newValue == null) {
+						newValue = "";
+					}
+					newValue = newValue.trim();
+
+					m = new Metadata();
+					m.setState(State.ACTIVE);
+					m.setName(name);
+					m.setValue(newValue);
+					updatedIndexes.add(m);
+				}
+			}
 		}
 
-		for (String name : indexMap.keySet()) {
+		for (String name : metadataMap.keySet()) {
 
 			name = name.trim();
 
 			Metadata m = map.get(name);
 
 			if (m == null) {
-				String newValue = indexMap.get(name);
+				String newValue = metadataMap.get(name);
 				if (newValue == null) {
 					newValue = "";
 				}

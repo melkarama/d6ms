@@ -96,8 +96,8 @@ public class DmsRepo {
 	}
 
 	public Map<String, List<Metadata>> getNodeMetadata(Collection<String> ids) {
-		String sql = "select d.id, m from Metadata m join m.node d where d.id in (:ids)";
-		Map<String, Object> params = Map.of("ids", ids);
+		String sql = "select n.id, m from Metadata m join fetch m.node n where n.id in (:ids) and n.state = :state";
+		Map<String, Object> params = Map.of("ids", ids, "state", State.ACTIVE);
 
 		TypedQuery<Object[]> q = em.createQuery(sql, Object[].class);
 		applyParams(q, params);
@@ -214,6 +214,10 @@ public class DmsRepo {
 
 		if (criteria.getType() != null) {
 			sql = appendSql(sql, "e.type = :type", params, "type", criteria.getType());
+		}
+
+		if (!StringUtils.isBlank(criteria.getName())) {
+			sql = appendSql(sql, "e.name = :name", params, "name", criteria.getName());
 		}
 
 		int idx = 0;

@@ -7,7 +7,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.d6ms.DmsRepo;
 import com.d6ms.DmsService;
-import com.d6ms.TrxService;
 import com.d6ms.entity.Store;
 
 import jakarta.inject.Inject;

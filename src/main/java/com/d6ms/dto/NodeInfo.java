@@ -3,6 +3,7 @@ package com.d6ms.dto;
 import java.util.Map;
 
 import com.d6ms.type.NodeType;
+import com.d6ms.utils.Utils;
 
 import lombok.Data;
 
@@ -32,5 +33,10 @@ public class NodeInfo {
 	private String md5;
 
 	private NodeType type;
+
+	@Override
+	public String toString() {
+		return Utils.toJson(this, true);
+	}
 
 }

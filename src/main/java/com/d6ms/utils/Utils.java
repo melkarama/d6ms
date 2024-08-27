@@ -21,9 +21,9 @@ public class Utils {
 			for (NodeTreeElement n : nodes) {
 				if (n != null) {
 					results.add(n);
-					if (n.getChildren() != null) {
-						results.addAll(flatten(n.getChildren().values()));
-					}
+				}
+				if (n.getChildren() != null) {
+					results.addAll(flatten(n.getChildren().values()));
 				}
 			}
 		}

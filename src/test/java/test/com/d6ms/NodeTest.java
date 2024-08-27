@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -156,6 +157,32 @@ public class NodeTest extends BaseTest {
 			assertEquals(2, DmsUtils.getRootNodes(nodeInfos).size());
 		}
 
+	}
+
+	@Test
+	public void testAddingInlineContent() throws Exception {
+		String bk = "bk03";
+		String content = "Hello Content 1";
+
+		int nb = 1;
+
+		String id = trxService
+				.execute(() -> dmsService.saveDocumentNode(storeId, null, "mt1", "mi1", bk, "Content1", content));
+
+		assertNotNull(id);
+
+		NodeSearchCriteria criteria = new NodeSearchCriteria();
+		criteria.setStoreId(storeId);
+
+		List<NodeInfo> nodeInfos = dmsService.loadNodeInfos(criteria);
+
+		assertEquals(nb, nodeInfos.size());
+
+		byte[] t = trxService.execute(() -> dmsService.loadContent(id));
+
+		assertNotNull(t);
+
+		assertEquals(content, new String(t, StandardCharsets.UTF_8));
 	}
 
 }

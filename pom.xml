@@ -15,6 +15,7 @@
 		<tika.version>2.9.2</tika.version>
 		<commons-collections.version>4.4</commons-collections.version>
 		<springboot.version>3.3.3</springboot.version>
+		<spring.version>6.1.12</spring.version>
 	</properties>
 
 	<build>
@@ -89,6 +90,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -96,6 +98,8 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+
 
 	</dependencies>
 </project>
