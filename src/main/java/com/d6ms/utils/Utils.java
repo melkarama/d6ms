@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import com.d6ms.dto.NodeTreeElement;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -58,4 +59,18 @@ public class Utils {
 		}
 	}
 
+	public static <E> String join(Collection<E> t, String separator, Function<E, String> toStringF) {
+
+		String s = "";
+
+		for (E o : t) {
+			if (s.length() > 0) {
+				s += separator;
+			}
+			s += toStringF.apply(o);
+		}
+
+		return s;
+
+	}
 }

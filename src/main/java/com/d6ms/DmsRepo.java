@@ -41,6 +41,22 @@ public class DmsRepo {
 		this.em = em;
 	}
 
+	public Node rename(String id, String name) {
+
+		ObjectUtils.requireNonEmpty(id, "Node Id");
+		ObjectUtils.requireNonEmpty(name, "Name");
+
+		Node e = load(Node.class, id);
+
+		if (e != null) {
+			e.setName(StringUtils.trim(name));
+
+			e = em.merge(e);
+		}
+
+		return e;
+	}
+
 	public Node getNode(String id) {
 		ObjectUtils.requireNonEmpty(id, "Node id");
 
@@ -84,6 +100,16 @@ public class DmsRepo {
 			ObjectUtils.requireNonEmpty(e, "Entity");
 
 			save(e);
+		}
+	}
+
+	public <E extends BaseEntity> E load(Class<E> clazz, String id) {
+		ObjectUtils.requireNonEmpty(id, "Id");
+
+		try {
+			return em.find(clazz, id);
+		} catch (NoResultException ex) {
+			return null;
 		}
 	}
 
@@ -132,7 +158,7 @@ public class DmsRepo {
 		return resultMap;
 	}
 
-	public List<NodeTreeElement> archiveNode(String id) {
+	public List<NodeTreeElement> archive(String id) {
 
 		ObjectUtils.requireNonEmpty(id, "Node id");
 
@@ -140,10 +166,10 @@ public class DmsRepo {
 			return new ArrayList<>();
 		}
 
-		return archiveNodes(List.of(id));
+		return archive(List.of(id));
 	}
 
-	public List<NodeTreeElement> archiveNodes(Collection<String> ids) {
+	public List<NodeTreeElement> archive(Collection<String> ids) {
 
 		if (ids == null || ids.isEmpty()) {
 			return new ArrayList<>();
@@ -174,11 +200,13 @@ public class DmsRepo {
 	}
 
 	public void saveAction(String id, ActionType type, List<NodeTreeElement> tree, LocalDateTime dt) {
+		String targt = Utils.toJson(tree, true);
+
 		Action e = new Action();
 		e.setArchiveDate(dt);
 		e.setType(type);
 		e.setNodeId(id);
-		e.setTargetHierarchy(Utils.toJson(tree, true));
+		e.setTargetHierarchy(targt);
 		save(e);
 	}
 
@@ -273,14 +301,29 @@ public class DmsRepo {
 		return new ArrayList<>(nodeMap.values());
 	}
 
+	public List<NodeTreeElement> getHierarchy(String storeId) {
+		return getHierarchy(storeId, null);
+	}
+
 	public List<NodeTreeElement> getHierarchy(Collection<String> rootIds) {
+		return getHierarchy(null, rootIds);
+	}
+
+	private List<NodeTreeElement> getHierarchy(String storeId, Collection<String> rootIds) {
+
+		if (rootIds == null || rootIds.isEmpty()) {
+			ObjectUtils.requireNonEmpty(storeId, "Store Id");
+		}
+
 		String sql = """
 				WITH RECURSIVE node_tree (id, name, type, parent_id, store_id, level) AS (
 				   SELECT id, name, type, parent_id, store_id, 1 AS level
 				   FROM dms_node """;
 
 		if (rootIds == null || rootIds.isEmpty()) {
-			sql += "\n WHERE parent_id is null ";
+			sql += "\n WHERE store_id = ? and parent_id is null ";
+		} else if (!StringUtils.isBlank(storeId)) {
+			sql += "\n WHERE store_id = ? and id is (?) ";
 		} else {
 			sql += "\n WHERE id in (?) ";
 		}
@@ -290,12 +333,22 @@ public class DmsRepo {
 				    SELECT p.id, p.name, p.type, p.parent_id, p.store_id, pt.level + 1 AS level
 				    FROM dms_node p
 				    INNER JOIN node_tree pt ON p.parent_id = pt.id
+				""";
+
+		if (!StringUtils.isBlank(storeId)) {
+			sql += "\n WHERE store_id = ?";
+		}
+
+		sql += """
 				)
 				SELECT * FROM node_tree
-						""";
+				""";
+
+		Object[] params = rootIds == null || rootIds.isEmpty() ? new Object[] { storeId, storeId }
+				: StringUtils.isBlank(storeId) ? new Object[] { rootIds } : new Object[] { storeId, rootIds, storeId };
 
 		Query q = em.createNativeQuery(sql, Object[].class);
-		q.setParameter(1, rootIds);
+		applyParams(q, params);
 
 		@SuppressWarnings("unchecked")
 		List<Object[]> lines = q.getResultList();
@@ -307,14 +360,14 @@ public class DmsRepo {
 			String name = (String) t[1];
 			NodeType type = NodeType.valueOf((String) t[2]);
 			String parentId = (String) t[3];
-			String storeId = (String) t[4];
-			int level = NumberUtils.toInt("" + t[4]);
+			String storeId2 = (String) t[4];
+			int level = NumberUtils.toInt("" + t[5]);
 
 			NodeTreeElement e = new NodeTreeElement();
 
-			e.setId(storeId);
+			e.setId(id);
 			e.setName(name);
-			e.setStoreId(storeId);
+			e.setStoreId(storeId2);
 			e.setParentId(parentId);
 			e.setType(type);
 			e.setLevel(level);
@@ -334,8 +387,7 @@ public class DmsRepo {
 		List<NodeTreeElement> results = new ArrayList<>();
 
 		for (NodeTreeElement e : cacheMap.values()) {
-			if ((rootIds == null || rootIds.isEmpty()) && StringUtils.isBlank(e.getParentId())
-					|| rootIds.contains(e.getId())) {
+			if (e.getParentId() == null) {
 				results.add(e);
 			}
 		}
@@ -347,6 +399,14 @@ public class DmsRepo {
 		if (params != null) {
 			for (String name : params.keySet()) {
 				q.setParameter(name, params.get(name));
+			}
+		}
+	}
+
+	private void applyParams(Query q, Object... params) {
+		if (params != null) {
+			for (int i = 1; i <= params.length; i++) {
+				q.setParameter(i, params[i - 1]);
 			}
 		}
 	}

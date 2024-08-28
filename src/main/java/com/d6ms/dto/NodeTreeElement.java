@@ -2,6 +2,8 @@ package com.d6ms.dto;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.d6ms.type.NodeType;
 import com.d6ms.utils.Utils;
 
@@ -29,6 +31,20 @@ public class NodeTreeElement {
 	@Override
 	public String toString() {
 		return Utils.toJson(this, true);
+	}
+
+	public String print() {
+
+		String s = "[" + type.name().charAt(0) + "] -" + StringUtils.repeat("--", level - 1) + " " + name;
+
+		if (children != null) {
+			for (NodeTreeElement e : children.values()) {
+				s += "\n" + e.print();
+			}
+		}
+
+		return s;
+
 	}
 
 }

@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ import java.util.function.Function;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
@@ -70,10 +73,10 @@ public class DmsService {
 		FileUtils.writeByteArrayToFile(outFile, t);
 	}
 
-	public String saveFolderNode(String storeId, String parentNodeId, String businesskey, File folderFile,
+	public String saveDir(String storeId, String parentNodeId, String businesskey, File folderFile,
 			Function<File, Boolean> filter) throws Exception {
 
-		String id = saveFolderNode(storeId, parentNodeId, businesskey, folderFile.getName());
+		String id = saveDir(storeId, parentNodeId, businesskey, folderFile.getName());
 
 		File[] files = folderFile.listFiles();
 
@@ -83,10 +86,10 @@ public class DmsService {
 					Boolean inc = filter.apply(f);
 					if (inc != null && inc) {
 						if (f.isDirectory()) {
-							saveFolderNode(storeId, id, businesskey, f, filter);
+							saveDir(storeId, id, businesskey, f, filter);
 						} else {
-							saveDocumentNode(storeId, id, File.class.getCanonicalName(), f.getCanonicalPath(),
-									businesskey, f.getName(), f);
+							saveFile(storeId, id, File.class.getCanonicalName(), f.getCanonicalPath(), businesskey,
+									null, f.getName(), f);
 						}
 					}
 				}
@@ -100,19 +103,21 @@ public class DmsService {
 		return id;
 	}
 
-	public String saveFolderNode(String storeId, String parentNodeId, String businesskey, String name)
-			throws IOException {
+	public String saveDir(String storeId, String parentNodeId, String businesskey, String name) throws IOException {
 
 		LOGGER.info("#folder# Saving node [store={}, parent={}, bk={}, name={}]", storeId, parentNodeId, businesskey,
 				name);
 
+		ObjectUtils.requireNonEmpty(storeId, "Store Id");
+		ObjectUtils.requireNonEmpty(storeId, "Name");
+
 		Store store = new Store(storeId);
 
 		Node n = new Node();
-		n.setBusinessKey(businesskey);
-		n.setName(name);
+		n.setBusinessKey(StringUtils.defaultIfBlank(businesskey, null));
+		n.setName(StringUtils.trim(name));
 		n.setStore(store);
-		n.setType(NodeType.FOLDER);
+		n.setType(NodeType.DIR);
 		n.setState(State.ACTIVE);
 
 		if (parentNodeId != null) {
@@ -129,23 +134,39 @@ public class DmsService {
 		return id;
 	}
 
-	public void archiveNode(String id) {
+	public void archive(String id) {
 		if (StringUtils.isBlank(id)) {
 			return;
 		}
 
-		List<NodeTreeElement> tree = dmsRepo.archiveNode(id);
+		List<NodeTreeElement> tree = dmsRepo.archive(id);
 
 		if (!tree.isEmpty()) {
 			dmsRepo.saveAction(id, ActionType.ARCHIVING, tree, LocalDateTime.now());
 		}
 	}
 
-	public String saveDocumentNode(String storeId, String folderId, String masterType, String masterId,
-			String businesskey, String name, Object o) throws IOException, Exception {
+	public void rename(String id, String name) {
+		dmsRepo.rename(id, name);
+	}
 
-		LOGGER.info("#file# Saving node [store={}, parent={}, masterType={}, masterId={}, bk={}, name={}]", storeId,
-				folderId, masterType, masterId, businesskey, name);
+	public List<NodeTreeElement> getHierarchy(String storeId) {
+		return dmsRepo.getHierarchy(storeId);
+	}
+
+	public List<NodeTreeElement> getHierarchy(Collection<String> rootIds) {
+		return dmsRepo.getHierarchy(rootIds);
+	}
+
+	public String saveFile(String storeId, String folderId, String masterType, String masterId, String businesskey,
+			String category, String name, Object o) throws IOException, Exception {
+
+		LOGGER.info("#file# Saving node [store={}, parent={}, masterType={}, masterId={}, bk={}, category={}, name={}]",
+				storeId, folderId, masterType, masterId, businesskey, category, name);
+
+		ObjectUtils.requireNonEmpty(storeId, "Store Id");
+		ObjectUtils.requireNonEmpty(storeId, "Name");
+		ObjectUtils.requireNonEmpty(o, "Content");
 
 		byte[] content = null;
 
@@ -153,6 +174,8 @@ public class DmsService {
 			content = e.toString().getBytes(ENCODING);
 		} else if (o instanceof File e) {
 			content = FileUtils.readFileToByteArray(e);
+		} else if (o instanceof URL e) {
+			content = IOUtils.toByteArray(e);
 		} else if (o instanceof InputStream e) {
 			content = IOUtils.toByteArray(e);
 		} else if (o instanceof Reader e) {
@@ -160,7 +183,7 @@ public class DmsService {
 		} else if (o instanceof byte[] e) {
 			content = e;
 		} else {
-			throw new IllegalArgumentException("Undefined or Unmanaged content");
+			throw new IllegalArgumentException("Unmanaged content : " + o.getClass().getCanonicalName());
 		}
 
 		long length = content.length;
@@ -176,13 +199,14 @@ public class DmsService {
 		dmsRepo.save(nc);
 
 		Node n = new Node();
-		n.setBusinessKey(businesskey);
+		n.setCategory(StringUtils.defaultIfBlank(category, null));
+		n.setBusinessKey(StringUtils.defaultIfBlank(businesskey, null));
 		n.setName(name);
-		n.setMasterId(masterId);
-		n.setMasterType(masterType);
+		n.setMasterId(StringUtils.defaultIfBlank(masterId, null));
+		n.setMasterType(StringUtils.defaultIfBlank(masterType, null));
 		n.setStore(store);
 		n.setSize(length);
-		n.setType(NodeType.DOCUMENT);
+		n.setType(NodeType.FILE);
 		n.setContentType(contentType);
 		n.setState(State.ACTIVE);
 		n.setNodeContent(nc);

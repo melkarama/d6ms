@@ -45,6 +45,9 @@ public class Node extends BaseEntity {
 	@JoinColumns(@JoinColumn(name = "STORE_ID", nullable = false))
 	private Store store;
 
+	@Column(name = "CATEGORY")
+	private String category;
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "TYPE")
 	private NodeType type;

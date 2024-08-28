@@ -16,14 +16,14 @@ import com.d6ms.dto.NodeSearchCriteria;
 public class MetadataTest extends BaseTest {
 
 	@Test
-	public void testAddingFolderByName() throws Exception {
+	public void testAddingDirByName() throws Exception {
 		String bk = "bk11";
 		String content = "Hello Content 1";
 
 		int nb = 1;
 
 		String id = trxService
-				.execute(() -> dmsService.saveDocumentNode(storeId, null, "mt1", "mi1", bk, "Content1", content));
+				.execute(() -> dmsService.saveFile(storeId, null, "mt1", "mi1", bk, null, "Content1", content));
 
 		{
 			assertNotNull(id);

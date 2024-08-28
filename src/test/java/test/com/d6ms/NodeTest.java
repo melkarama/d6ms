@@ -11,20 +11,22 @@ import org.junit.jupiter.api.Test;
 
 import com.d6ms.dto.NodeInfo;
 import com.d6ms.dto.NodeSearchCriteria;
+import com.d6ms.dto.NodeTreeElement;
 import com.d6ms.type.NodeType;
 import com.d6ms.utils.DmsUtils;
+import com.d6ms.utils.Utils;
 
 public class NodeTest extends BaseTest {
 
 	@Test
-	public void testAddingFolderByName() throws Exception {
+	public void testAddingDirByName() throws Exception {
 		String bk = "bk01";
 
 		int nb = 3;
 
 		for (int i = 1; i <= nb; i++) {
-			String name = "Folder " + i;
-			String id = trxService.execute(() -> dmsService.saveFolderNode(storeId, null, bk, name));
+			String name = "Dir " + i;
+			String id = trxService.execute(() -> dmsService.saveDir(storeId, null, bk, name));
 			assertNotNull(id);
 
 			{
@@ -68,7 +70,7 @@ public class NodeTest extends BaseTest {
 	}
 
 	@Test
-	public void testAddingFolderAndDocumentsRecursivelyByFileSystem() throws Exception {
+	public void testAddingDirAndFilesRecursivelyByFileSystem() throws Exception {
 
 		List<NodeInfo> nodeInfos;
 
@@ -78,7 +80,7 @@ public class NodeTest extends BaseTest {
 
 			File d = new File(folderPath);
 
-			String id = trxService.execute(() -> dmsService.saveFolderNode(storeId, null, bk, d, (f) -> true));
+			String id = trxService.execute(() -> dmsService.saveDir(storeId, null, bk, d, (f) -> true));
 
 			assertNotNull(id);
 
@@ -94,7 +96,7 @@ public class NodeTest extends BaseTest {
 				NodeSearchCriteria criteria = new NodeSearchCriteria();
 				criteria.setBusinessKeys(List.of(bk));
 				criteria.setStoreId(storeId);
-				criteria.setType(NodeType.FOLDER);
+				criteria.setType(NodeType.DIR);
 				nodeInfos = dmsService.loadNodeInfos(criteria);
 				assertEquals(3, nodeInfos.size());
 			}
@@ -102,7 +104,7 @@ public class NodeTest extends BaseTest {
 				NodeSearchCriteria criteria = new NodeSearchCriteria();
 				criteria.setBusinessKeys(List.of(bk));
 				criteria.setStoreId(storeId);
-				criteria.setType(NodeType.DOCUMENT);
+				criteria.setType(NodeType.FILE);
 				nodeInfos = dmsService.loadNodeInfos(criteria);
 				assertEquals(2, nodeInfos.size());
 			}
@@ -121,7 +123,7 @@ public class NodeTest extends BaseTest {
 
 			File d = new File(folderPath);
 
-			String id = trxService.execute(() -> dmsService.saveFolderNode(storeId, null, bk, d, (f) -> true));
+			String id = trxService.execute(() -> dmsService.saveDir(storeId, null, bk, d, (f) -> true));
 
 			assertNotNull(id);
 
@@ -136,7 +138,7 @@ public class NodeTest extends BaseTest {
 				NodeSearchCriteria criteria = new NodeSearchCriteria();
 				criteria.setBusinessKeys(List.of(bk));
 				criteria.setStoreId(storeId);
-				criteria.setType(NodeType.FOLDER);
+				criteria.setType(NodeType.DIR);
 				nodeInfos = dmsService.loadNodeInfos(criteria);
 				assertEquals(3, nodeInfos.size());
 			}
@@ -144,7 +146,7 @@ public class NodeTest extends BaseTest {
 				NodeSearchCriteria criteria = new NodeSearchCriteria();
 				criteria.setBusinessKeys(List.of(bk));
 				criteria.setStoreId(storeId);
-				criteria.setType(NodeType.DOCUMENT);
+				criteria.setType(NodeType.FILE);
 				nodeInfos = dmsService.loadNodeInfos(criteria);
 				assertEquals(3, nodeInfos.size());
 			}
@@ -157,6 +159,9 @@ public class NodeTest extends BaseTest {
 			assertEquals(2, DmsUtils.getRootNodes(nodeInfos).size());
 		}
 
+		List<NodeTreeElement> tree = dmsRepo.getHierarchy(storeId);
+
+		System.out.println(Utils.join(tree, "\n", (e) -> e.print()));
 	}
 
 	@Test
@@ -167,7 +172,7 @@ public class NodeTest extends BaseTest {
 		int nb = 1;
 
 		String id = trxService
-				.execute(() -> dmsService.saveDocumentNode(storeId, null, "mt1", "mi1", bk, "Content1", content));
+				.execute(() -> dmsService.saveFile(storeId, null, "mt1", "mi1", bk, null, "Content1", content));
 
 		assertNotNull(id);
 
