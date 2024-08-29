@@ -132,25 +132,23 @@ public class DmsRepo {
 	}
 
 	public Map<String, List<Metadata>> getNodeMetadata(Collection<String> ids) {
-		String sql = "select n.id, m from Metadata m join fetch m.node n where n.id in (:ids) ";
+		String sql = "select m from Metadata m join fetch m.node n where n.id in (:ids) ";
 		sql += " and n.state = :activeState and m.state = :activeState";
 		Map<String, Object> params = Map.of("ids", ids, "activeState", State.ACTIVE);
 
-		TypedQuery<Object[]> q = em.createQuery(sql, Object[].class);
+		TypedQuery<Metadata> q = em.createQuery(sql, Metadata.class);
 		applyParams(q, params);
 
-		List<Object[]> sqlResults = q.getResultList();
+		List<Metadata> sqlResults = q.getResultList();
 
 		Map<String, List<Metadata>> resultMap = new LinkedHashMap<>();
 
-		for (Object[] t : sqlResults) {
-			String id = (String) t[0];
-			Metadata m = (Metadata) t[1];
-
-			List<Metadata> t2 = resultMap.get(id);
+		for (Metadata m : sqlResults) {
+			String nodeId = m.getNode().getId();
+			List<Metadata> t2 = resultMap.get(nodeId);
 			if (t2 == null) {
 				t2 = new ArrayList<>();
-				resultMap.put(id, t2);
+				resultMap.put(nodeId, t2);
 			}
 			t2.add(m);
 		}
