@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Writer;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -63,14 +65,22 @@ public class DmsService {
 		return Arrays.copyOf(t, t.length);
 	}
 
-	public void loadContent(String id, OutputStream out) throws IOException {
+	public void loadContent(String id, Object output) throws IOException {
 		byte[] t = loadContent(id);
-		out.write(t);
-	}
 
-	public void loadContent(String id, File outFile) throws IOException {
-		byte[] t = loadContent(id);
-		FileUtils.writeByteArrayToFile(outFile, t);
+		if (output instanceof StringBuilder e) {
+			e.append(new String(t, ENCODING));
+		} else if (output instanceof File e) {
+			FileUtils.writeByteArrayToFile(e, t);
+		} else if (output instanceof URL e) {
+			FileUtils.writeByteArrayToFile(Paths.get(e.getPath()).toFile(), t);
+		} else if (output instanceof OutputStream e) {
+			IOUtils.write(t, e);
+		} else if (output instanceof Writer e) {
+			IOUtils.write(t, e, ENCODING);
+		} else {
+			throw new IllegalArgumentException("Unmanaged output : " + output.getClass().getCanonicalName());
+		}
 	}
 
 	public String saveDir(String storeId, String parentNodeId, String businesskey, File folderFile,
