@@ -35,6 +35,15 @@ By building **d6ms** on top of a database, we can take advantage of existing kno
 - **Clustering and High Availability**: Implement proven techniques to ensure the system remains operational and performant under heavy loads.
 - **Data Backup and Recovery**: Leverage hot and cold backup strategies to protect data integrity and ensure quick recovery in case of failure.
 
+## Database compatibility
+
+**d6ms** works with the following database types :
+
+- Oracle
+- Postgresql
+- Hsqldb
+- H2
+
 ## Getting Started
 
 To get started with **d6ms**, simply refer to the example usages implemented in the JUnit test cases provided in the project. These examples will guide you through the basic functionalities and how to effectively use the system.
