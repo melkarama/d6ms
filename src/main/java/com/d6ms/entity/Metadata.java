@@ -23,7 +23,7 @@ public class Metadata extends BaseEntity {
 	@Column(name = "NAME")
 	private String name;
 
-	@Column(name = "VALUE", length = 4000)
+	@Column(name = "VALUE_", length = 4000)
 	private String value;
 
 }

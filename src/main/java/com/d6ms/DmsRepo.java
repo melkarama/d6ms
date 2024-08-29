@@ -23,6 +23,7 @@ import com.d6ms.entity.BaseEntity;
 import com.d6ms.entity.Metadata;
 import com.d6ms.entity.Node;
 import com.d6ms.type.ActionType;
+import com.d6ms.type.DatabaseType;
 import com.d6ms.type.NodeType;
 import com.d6ms.type.State;
 import com.d6ms.utils.Utils;
@@ -36,9 +37,12 @@ public class DmsRepo {
 
 	private EntityManager em;
 
-	public DmsRepo(EntityManager em) {
+	private DatabaseType dbType;
+
+	public DmsRepo(EntityManager em, DatabaseType dbType) {
 		super();
 		this.em = em;
+		this.dbType = dbType;
 	}
 
 	public Node rename(String id, String name) {
@@ -313,40 +317,7 @@ public class DmsRepo {
 			ObjectUtils.requireNonEmpty(storeId, "Store Id");
 		}
 
-		String sql = """
-				WITH RECURSIVE node_tree (id, name, type, parent_id, store_id, level) AS (
-				   SELECT id, name, type, parent_id, store_id, 1 AS level
-				   FROM dms_node """;
-
-		if (rootIds == null || rootIds.isEmpty()) {
-			sql += "\n WHERE store_id = ? and parent_id is null ";
-		} else if (!StringUtils.isBlank(storeId)) {
-			sql += "\n WHERE store_id = ? and id is (?) ";
-		} else {
-			sql += "\n WHERE id in (?) ";
-		}
-
-		sql += """
-				    \n UNION ALL
-				    SELECT p.id, p.name, p.type, p.parent_id, p.store_id, pt.level + 1 AS level
-				    FROM dms_node p
-				    INNER JOIN node_tree pt ON p.parent_id = pt.id
-				""";
-
-		if (!StringUtils.isBlank(storeId)) {
-			sql += "\n WHERE p.store_id = ?";
-		}
-
-		sql += """
-				)
-				SELECT * FROM node_tree
-				""";
-
-		Object[] params = rootIds == null || rootIds.isEmpty() ? new Object[] { storeId, storeId }
-				: StringUtils.isBlank(storeId) ? new Object[] { rootIds } : new Object[] { storeId, rootIds, storeId };
-
-		Query q = em.createNativeQuery(sql, Object[].class);
-		applyParams(q, params);
+		Query q = createHierarchyQuery(storeId, rootIds);
 
 		@SuppressWarnings("unchecked")
 		List<Object[]> lines = q.getResultList();
@@ -391,6 +362,79 @@ public class DmsRepo {
 		}
 
 		return results;
+	}
+
+	private Query createHierarchyQuery(String storeId, Collection<String> rootIds) {
+		String sql;
+		Object[] params;
+
+		if (dbType == DatabaseType.ORACLE) {
+			sql = """
+					SELECT id,
+					      name,
+					      type,
+					      parent_id,
+					      store_id,
+					      level
+					FROM dms_node
+					""";
+
+			if (rootIds == null || rootIds.isEmpty()) {
+				sql += "\n START WITH store_id = ? and parent_id is null ";
+			} else if (!StringUtils.isBlank(storeId)) {
+				sql += "\n START WITH store_id = ? and id in (?)";
+			} else {
+				sql += "\n START WITH id in (?)";
+			}
+
+			sql += """
+					CONNECT BY PRIOR id = parent_id
+					ORDER SIBLINGS BY id
+										""";
+
+			params = rootIds == null || rootIds.isEmpty() ? new Object[] { storeId, }
+					: StringUtils.isBlank(storeId) ? new Object[] { rootIds } : new Object[] { storeId, rootIds };
+
+		} else {
+
+			sql = """
+					WITH RECURSIVE node_tree (id, name, type, parent_id, store_id, level) AS (
+					   SELECT id, name, type, parent_id, store_id, 1 AS level
+					   FROM dms_node """;
+
+			if (rootIds == null || rootIds.isEmpty()) {
+				sql += "\n WHERE store_id = ? and parent_id is null ";
+			} else if (!StringUtils.isBlank(storeId)) {
+				sql += "\n WHERE store_id = ? and id is (?) ";
+			} else {
+				sql += "\n WHERE id in (?) ";
+			}
+
+			sql += """
+					    \n UNION ALL
+					    SELECT p.id, p.name, p.type, p.parent_id, p.store_id, pt.level + 1 AS level
+					    FROM dms_node p
+					    INNER JOIN node_tree pt ON p.parent_id = pt.id
+					""";
+
+			if (!StringUtils.isBlank(storeId)) {
+				sql += "\n WHERE p.store_id = ?";
+			}
+
+			sql += """
+					)
+					SELECT * FROM node_tree
+					""";
+
+			params = rootIds == null || rootIds.isEmpty() ? new Object[] { storeId, storeId }
+					: StringUtils.isBlank(storeId) ? new Object[] { rootIds }
+							: new Object[] { storeId, rootIds, storeId };
+		}
+
+		Query q = em.createNativeQuery(sql, Object[].class);
+		applyParams(q, params);
+
+		return q;
 	}
 
 	private void applyParams(Query q, Map<String, ?> params) {
@@ -456,4 +500,5 @@ public class DmsRepo {
 
 		return e;
 	}
+
 }

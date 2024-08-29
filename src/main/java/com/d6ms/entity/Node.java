@@ -55,7 +55,7 @@ public class Node extends BaseEntity {
 	@Column(name = "MD5")
 	private String md5;
 
-	@Column(name = "SIZE")
+	@Column(name = "SIZE_")
 	private long size;
 
 	@Column(name = "CONTENT_TYPE")

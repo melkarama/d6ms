@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.d6ms.DmsRepo;
 import com.d6ms.DmsService;
+import com.d6ms.type.DatabaseType;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -63,7 +64,7 @@ public class BaseTestConfig {
 
 	@Bean
 	public DmsRepo dmsService(EntityManager em) {
-		return new DmsRepo(em);
+		return new DmsRepo(em, DatabaseType.POSTGRESQL);
 	}
 
 	@Bean
