@@ -35,7 +35,9 @@ public class NodeTreeElement {
 
 	public String print() {
 
-		String s = "[" + type.name().charAt(0) + "] -" + StringUtils.repeat("--", level - 1) + " " + name;
+		String s = "[" + type.name().charAt(0) + "] ";
+		s += "[" + StringUtils.leftPad("" + level, 3, '0') + "] -";
+		s += StringUtils.repeat("--", level - 1) + " " + name;
 
 		if (children != null) {
 			for (NodeTreeElement e : children.values()) {

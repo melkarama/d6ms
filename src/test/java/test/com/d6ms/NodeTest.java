@@ -190,4 +190,23 @@ public class NodeTest extends BaseTest {
 		assertEquals(content, new String(t, StandardCharsets.UTF_8));
 	}
 
+	@Test
+	public void test3() throws Exception {
+
+		{
+			String bk = "bk41";
+			String folderPath = ".";
+
+			File d = new File(folderPath);
+
+			String id = trxService
+					.execute(() -> dmsService.saveDir(storeId, null, bk, d, (f) -> !f.getName().startsWith(".")));
+
+			assertNotNull(id);
+		}
+
+		List<NodeTreeElement> tree = dmsRepo.getHierarchy(storeId);
+
+		System.out.println(Utils.join(tree, "\n", (e) -> e.print()));
+	}
 }

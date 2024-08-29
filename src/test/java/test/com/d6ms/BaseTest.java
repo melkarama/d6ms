@@ -1,5 +1,7 @@
 package test.com.d6ms;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -34,22 +36,8 @@ public class BaseTest {
 	@BeforeEach
 	public void init() throws Exception {
 
-		trxService.execute(() -> {
-			String[] tables = { "dms_metadata", "dms_node", "dms_action" };
-
-			for (String table : tables) {
-				em.createNativeQuery("truncate table " + table).executeUpdate();
-			}
-
-			return null;
-		});
-
-		if (storeId != null) {
-			return;
-		}
-
 		Store store = new Store();
-		store.setName("S01");
+		store.setName(UUID.randomUUID().toString());
 
 		trxService.execute(() -> {
 			em.persist(store);

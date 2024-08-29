@@ -329,14 +329,14 @@ public class DmsRepo {
 		}
 
 		sql += """
-				    UNION ALL
+				    \n UNION ALL
 				    SELECT p.id, p.name, p.type, p.parent_id, p.store_id, pt.level + 1 AS level
 				    FROM dms_node p
 				    INNER JOIN node_tree pt ON p.parent_id = pt.id
 				""";
 
 		if (!StringUtils.isBlank(storeId)) {
-			sql += "\n WHERE store_id = ?";
+			sql += "\n WHERE p.store_id = ?";
 		}
 
 		sql += """

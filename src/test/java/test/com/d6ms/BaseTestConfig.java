@@ -45,7 +45,7 @@ public class BaseTestConfig {
 		Properties props = new Properties();
 		props.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
 		props.setProperty("hibernate.hbm2ddl.auto", "create-drop");
-		props.setProperty("hibernate.globally_quoted_identifiers", "true");
+		props.setProperty("hibernate.globally_quoted_identifiers", "false");
 		emfBean.setJpaProperties(props);
 
 		return emfBean;
