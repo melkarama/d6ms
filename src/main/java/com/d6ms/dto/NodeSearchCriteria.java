@@ -24,6 +24,8 @@ public class NodeSearchCriteria {
 
 	private Collection<String> masterTypes;
 
+	private Map<String, Collection<String>> masterMap;
+
 	private String name;
 
 	private String parentId;

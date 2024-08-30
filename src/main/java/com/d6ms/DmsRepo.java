@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -263,6 +264,51 @@ public class DmsRepo {
 			sql = appendSql(sql, "e.name = :name", params, "name", criteria.getName());
 		}
 
+		if (criteria.getMasterMap() != null) {
+			String sql2 = "";
+
+			int idx = 0;
+			for (Entry<String, Collection<String>> e : criteria.getMasterMap().entrySet()) {
+				String masterType = StringUtils.trim(e.getKey());
+				List<String> masterIds = filterIds(e.getValue());
+
+				if (StringUtils.isBlank(masterType) && masterIds.isEmpty()) {
+					continue;
+				}
+
+				if (sql2.length() > 0) {
+					sql2 += "\n or ";
+				}
+
+				sql2 += "(";
+
+				if (!StringUtils.isBlank(masterType)) {
+					String masterTypeParam = "master_map_type_" + idx;
+					sql2 += " e.masterType = :" + masterTypeParam;
+					params.put(masterTypeParam, masterType);
+
+					if (!masterIds.isEmpty()) {
+						String masterIdParam = "master_map_id_" + idx;
+						sql2 += " and e.masterId in (:" + masterIdParam + ")";
+						params.put(masterIdParam, StringUtils.join(masterIds, ", "));
+
+					}
+				} else if (!masterIds.isEmpty()) {
+					String masterIdParam = "master_map_id_" + idx;
+					sql2 += " e.masterId in (:" + masterIdParam + ")";
+					params.put(masterIdParam, StringUtils.join(masterIds, ", "));
+				}
+
+				sql2 += ")";
+
+				idx++;
+			}
+
+			if (sql2.length() > 0) {
+				sql += "\n and " + sql2;
+			}
+		}
+
 		int idx = 0;
 		for (String idxName : idxMap.keySet()) {
 			String idxValue = idxMap.get(idxName);
@@ -313,7 +359,9 @@ public class DmsRepo {
 
 	private List<NodeTreeElement> getHierarchy(String storeId, Collection<String> rootIds) {
 
-		if (rootIds == null || rootIds.isEmpty()) {
+		rootIds = filterIds(rootIds);
+
+		if (rootIds.isEmpty()) {
 			ObjectUtils.requireNonEmpty(storeId, "Store Id");
 		}
 
@@ -365,6 +413,8 @@ public class DmsRepo {
 	}
 
 	private Query createHierarchyQuery(String storeId, Collection<String> rootIds) {
+		rootIds = filterIds(rootIds);
+
 		String sql;
 		Object[] params;
 
@@ -379,7 +429,7 @@ public class DmsRepo {
 					FROM dms_node
 					""";
 
-			if (rootIds == null || rootIds.isEmpty()) {
+			if (rootIds.isEmpty()) {
 				sql += "\n START WITH store_id = ? and parent_id is null ";
 			} else if (!StringUtils.isBlank(storeId)) {
 				sql += "\n START WITH store_id = ? and id in (?)";
@@ -392,7 +442,7 @@ public class DmsRepo {
 					ORDER SIBLINGS BY id
 										""";
 
-			params = rootIds == null || rootIds.isEmpty() ? new Object[] { storeId, }
+			params = rootIds.isEmpty() ? new Object[] { storeId, }
 					: StringUtils.isBlank(storeId) ? new Object[] { rootIds } : new Object[] { storeId, rootIds };
 
 		} else {
@@ -402,7 +452,7 @@ public class DmsRepo {
 					   SELECT id, name, type, parent_id, store_id, 1 AS level
 					   FROM dms_node """;
 
-			if (rootIds == null || rootIds.isEmpty()) {
+			if (rootIds.isEmpty()) {
 				sql += "\n WHERE store_id = ? and parent_id is null ";
 			} else if (!StringUtils.isBlank(storeId)) {
 				sql += "\n WHERE store_id = ? and id is (?) ";
@@ -426,7 +476,7 @@ public class DmsRepo {
 					SELECT * FROM node_tree
 					""";
 
-			params = rootIds == null || rootIds.isEmpty() ? new Object[] { storeId, storeId }
+			params = rootIds.isEmpty() ? new Object[] { storeId, storeId }
 					: StringUtils.isBlank(storeId) ? new Object[] { rootIds }
 							: new Object[] { storeId, rootIds, storeId };
 		}
@@ -499,6 +549,13 @@ public class DmsRepo {
 		e.setType(n.getType());
 
 		return e;
+	}
+
+	private List<String> filterIds(Collection<String> rootIds) {
+		return rootIds == null ? new ArrayList<>()
+				: rootIds.stream().filter(s -> s != null && !s.isEmpty()).map(String::trim)
+						.collect(Collectors.toList());
+
 	}
 
 }
